@@ -9,6 +9,7 @@ formatting_file
 creating_experiment_files
 G4_intersecting
 Jaccard
+multiIntersect
 cleaning
 
 
@@ -116,6 +117,15 @@ G4_intersecting(){
 echo "Intersecting Experiment files with G4s..."
 ls SRX* | parallel -j 3 "bash G4_intersect.sh $(echo {})"
 
+python << END
+import pandas as pd
+data = pd.read_csv("Output.txt", delim_whitespace = True, header = None)
+data[9] = data[5] / data[1]
+data = data[[0, 1, 5, 9]]
+data = data.sort_values(by = 9, ascending = False)
+data.to_csv("Output_sorted.txt", sep = "\t", index = None, header = None)
+
+END
 }
 
 Jaccard(){
@@ -153,6 +163,14 @@ echo "Cleaning finished."
 
 
 }
+
+multiIntersect(){
+
+multiIntersectBed -i SRX* | cut -f 6- > "$FILE_NAME.matrix"
+column_count=$(awk '{ FS = "\t" } ; { print NF}' $FILE_NAME.matrix | head -1)
+Rscript --vanilla Jaccard_matrix.R $FILE_NAME.matrix $column_count
+
+}
 cleaning(){
 echo "Removing temporary files..."
 line_number=$(wc -l < $FILE_NAME)
@@ -165,7 +183,12 @@ rm temp
 rm $FILE_NAME.IDs.final
 rm $FILE_NAME.IDs
 rm *.sorted
+rm .sorted
 rm intersected.*
+rm filenames
+#rm SRX*
+rm Output.txt
+#rm matrix
 
 echo "Termporary files removed. Exiting."
 }
