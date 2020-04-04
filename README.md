@@ -1,7 +1,7 @@
 # ChIP-Pipeline
 # ChIP-Pipeline
 ## Workflow
-
+![alt text](./jaccard.jpg)
 
 The pipeline requires Input files in BED- or BED6-format. For now, the Pipeline accepts output from ChIP-Atlas and formates files to BED-format. Input as .tsv looks like this (showing one line):
 ```
