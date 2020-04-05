@@ -173,7 +173,8 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
 ```
 ![alt text](./matrix_final.jpg)
 
-This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```python``` script constructs an **n x n** matrix from all Jaccard indices, and then feeds the matrix into an ```R``` script using  ```scan()```
+This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```Python``` script constructs an **n x n** matrix from all Jaccard indices, then feeds the matrix into an ```R``` script using  ```scan()```. Finally, ```image()``` interpretes the Jaccard indices in the matrix as colours, ranging from **0.00 (red)** to **1.00 (white)** - hence, yellow to white pixel indicate a high similiarity, whereas red indicates small to no overlap. As the matrix has all experiments on both the x- and y-axis, at each position **(n/n)** there is a white spot, where the Jaccard index was calculated for identical experiments, leading to an overlap of **1.00**. This line thus is technically a symmetry axis.<br/>
+Limiting factor for the ```Jaccard()``` function is for now the ```scan()``` function: As it reads in the matrix as a whole into the memory, **n** <sup> **2**</sup> matrix elements quickly outscale available RAM, which kills the ```R``` script. Here, I might need to transform the Jaccard matrix into a sparse matrix, which would greatly reduce RAM load.  
 ```sh
 Jaccard(){
 
@@ -209,6 +210,7 @@ echo "Cleaning finished."
 #echo "Exiting."
 }
 ```
+The ```Python``` script which constructs the Jaccard matrix using ```sort_index()``` and ```unstack()```.
 ```python
 import pandas as pd
 import argparse
@@ -221,7 +223,7 @@ file = pd.read_csv(args.i, sep = "\t", header = None)
 matrix = file.set_index([0, 1])[2].sort_index().unstack()
 matrix.to_csv("matrix_final.tsv", index = False, header = False, sep = "\t")
 ```
-
+The ```R``` script that plots the image using the ```image()``` function.
 ```r
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
