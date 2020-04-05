@@ -171,7 +171,9 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
    |1.0 |0.1 |0.1 |0.1 | d                      |
    +-------------------+                        v
 ```
+
 ![alt text](./matrix_final.jpg)
+
 
 ## Plotting Coverage
 
