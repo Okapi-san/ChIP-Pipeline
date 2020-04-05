@@ -153,9 +153,9 @@ echo "Done. A total of $count1 experiment files was created."
 ```
 ## Analysis Functions
 ## Jaccard-Matrix
-When analyzing multiple ChIP-seq experiments, an overall plot of similiarities between single experiments can indicate factors targeting similiar genomic regions or sites. Rather than comparing intersects, one would like to compare the *grade of similiarity*, which can be calculated from the area of overlap divided by the area of union - this is known as the Jaccard Index: 
-<br/> ![alt text](./jaccard.jpg)
-<br/>
+When analyzing multiple ChIP-seq experiments, an overall plot of similiarities between single experiments can indicate factors targeting similiar genomic regions or sites. Rather than comparing intersects, one would like to compare the *grade of similiarity*, which can be calculated from the area of overlap divided by the area of union - this is known as the Jaccard Index: <br/><br/> 
+![alt text](./jaccard.jpg)
+<br/><br/>
 The Jaccard statistic is used in set theory to represent the ratio of the intersection of two sets to the union of the two sets. Similarly, Favorov et al. (2012) reported the use of the Jaccard statistic for genome intervals: specifically, it measures the ratio of the number of intersecting base pairs between two sets to the number of base pairs in the union of the two sets. Here, the ```bedtools jaccard``` tool is implemented to calculate this statistic, which modifies the statistic such that the length of the intersection is subtracted from the length of the union. **As a result, the final statistic ranges from 0.0 to 1.0, where 0.0 represents no overlap and 1.0 represent complete overlap.** To plot the the Jaccard indices of **n** ChIP-seq experiments, the Pipeline creates a two-dimensional matrix with an length **n** and width **n** - As this requires the calculation of **n** <sup> **2**</sup> Jaccard indices, the function rapidly outscales the processing power of the workstation and needs to be parallelized with ```GNU parallel``` for improved scalability.  
 
 ```
@@ -174,8 +174,20 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
 ![alt text](./matrix_final.tsv .jpg)
 
 ## Sample Analysis
-In the following, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. 
-This is the output of the Pipeline in the terminal:
+In the following, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. Once started, the Pipeline ask to specify the input file and then requires no further interaction. This is the output of the Pipeline in the terminal:
+The ```echo``` output resembles the respective steps in the Pipeline:
+- Asking for the input file
+- Checking the header
+- Deciding whether the file should be split
+- Extracting all SRX-IDs
+- Removing excess data from mainfile
+- Creating experiment files
+- Intersecting files with G4s
+- Calculating Jaccard indices
+- Constructing Jaccard matrix
+- Rendering matrix plot
+- MultiIntersecting & rendering coverage plot
+
 ```sh
 (base) Oth.ALL.05.EPAS1.AllCell.bed>./ChIP_Pipeline_final.sh 
 Enter File name:                        
