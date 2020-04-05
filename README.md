@@ -122,7 +122,7 @@ fi
 ## creating_experiment_files()
 Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file.
 
-```
+```python
                +----------->  SRX19382
 +--------------+
 |              +----------->  SRX19383
