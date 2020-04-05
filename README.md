@@ -263,7 +263,7 @@ Where the Jaccard index calculates an overall plot of similiarities between sing
                                                       |
                                                       v
 ```
-
+![alt text](./matrix_test.jpg)
 ```sh
 multiIntersect(){
 
@@ -291,7 +291,7 @@ image(mat)
 dev.off()
 q()
 ```
-![alt text](./matrix_test.jpg)
+
 <br/><br/>
 ## Sample Analysis
 In the following, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. Once started, the Pipeline ask to specify the input file and then requires no further interaction. This is the output of the Pipeline in the terminal:
