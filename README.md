@@ -171,12 +171,77 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
    |1.0 |0.1 |0.1 |0.1 | d                      |
    +-------------------+                        v
 ```
-
 ![alt text](./matrix_final.jpg)
 
+This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```python``` script constructs an **n x n** matrix from all Jaccard indices, and then feeds the matrix into an ```R``` script using  ```scan()```
+```sh
+Jaccard(){
+
+ls SRX* > filenames
+end_of_file=0
+while [[ $end_of_file == 0 ]]; do
+  	read -r line
+  	end_of_file=$?
+	sortBed -i $line > $line.sorted
+			
+done < "filenames"
+
+file_count=$(ls *.sorted | wc -l)
+echo "Calculating jaccard indices for $file_count files..."
+parallel "bedtools jaccard -a {1} -b {2} | awk 'NR>1' | cut -f 3 > {1}.{2}.jaccard" ::: `ls *.sorted` ::: `ls *.sorted`
+echo "Jaccard indices calculated."
+find . | grep jaccard | xargs grep "" | sed -e s"/\.\///" | perl -pi -e "s/.bed./.bed\t/" | perl -pi -e "s/.jaccard:/\t/" > temp
+grep SRX temp > pairwise.jaccard.matrix
+echo "Constructing matrix..."
+python make_matrix.py -i pairwise.jaccard.matrix
+echo "Matrix constructed."
+column_count=$(awk '{ FS = "\t" } ; { print NF}' matrix_final.tsv | head -1)
+matrix_file="matrix_final.tsv"
+echo "Rendering matrix plot..."
+Rscript --vanilla Jaccard_matrix.R $matrix_file $column_count 
+echo "Matrix plot rendered."
+echo "Cleaning up..."
+rm *.jaccard
+rm matrix_final.tsv
+rm temp 
+rm pairwise.jaccard.matrix
+echo "Cleaning finished."
+#echo "Exiting."
+}
+```
+```python
+import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', required=True, dest="i", help="Specify name of input file.")
+args = parser.parse_args()
+
+file = pd.read_csv(args.i, sep = "\t", header = None)
+matrix = file.set_index([0, 1])[2].sort_index().unstack()
+matrix.to_csv("matrix_final.tsv", index = False, header = False, sep = "\t")
+```
+
+```r
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+args[1]
+args[2]
+b <- as.numeric(args[2])
+c <- args[1]
+d <- ".jpg"
+e <- paste(c, d)
+x <- scan(args[1])
+mat <- matrix(x, ncol = b, byrow = TRUE)
+jpeg(file=e, width=1600, height=1600, res=300)
+image(mat)
+dev.off()
+q()
+```
 
 ## Plotting Coverage
 
+Where the Jaccard index calculates an overall plot of similiarities between single experiments to cluster factors targeting similiar genomic regions or sites, another approach would be to plot the overall coverage of each experiment over *all* genomic regions covered in all experiments: This allows to identify genomic regions that are covered in most experiments or, to identify experiments covering special regions which are not covered by most other experiments. This is done with ```bedtools multiIntersectBed```
 ```python
  SRX1094                                                                       SRX1094     SRX1095  +->   ...
 +-----------------------+			  +-------------------------------------------------------------+
@@ -193,6 +258,34 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
 +-----------------------+                             |     image()                    ...
                                                       |
                                                       v
+```
+
+```sh
+multiIntersect(){
+
+multiIntersectBed -i SRX* | cut -f 6- > "$FILE_NAME.matrix"
+column_count=$(awk '{ FS = "\t" } ; { print NF}' $FILE_NAME.matrix | head -1)
+Rscript --vanilla Jaccard_matrix.R $FILE_NAME.matrix $column_count
+
+}
+
+```
+
+```r
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+args[1]
+args[2]
+b <- as.numeric(args[2])
+c <- args[1]
+d <- ".jpg"
+e <- paste(c, d)
+x <- scan(args[1])
+mat <- matrix(x, ncol = b, byrow = TRUE)
+jpeg(file=e, width=1600, height=1600, res=300)
+image(mat)
+dev.off()
+q()
 ```
 ![alt text](./matrix_test.jpg)
 <br/><br/>
