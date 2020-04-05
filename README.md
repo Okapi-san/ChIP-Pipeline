@@ -171,8 +171,29 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
    |1.0 |0.1 |0.1 |0.1 | d                      |
    +-------------------+                        v
 ```
-![alt text](./matrix_final.tsv .jpg)
+![alt text](./matrix_final.jpg)
 
+## Plotting Coverage
+
+```
+ SRX1094                                                                       SRX1094     SRX1095  +->   ...
++-----------------------+			  +-------------------------------------------------------------+
+|chr1      199     2041 |                         |chr1      199     2041         1           0
+|chr3      55911   59451|    +------------->      |chr1      2849    4822         0           1
+|chr5      4280    10234|                         |chr1      32011   34331        0           1
++-----------------------+   multiIntersectBed()   |chr3      55911   59451        1           0
+                                                  |chr5      4280    10234        1           0
+ SRX1095                           +------->      |chr7      19331   20144        0           1
++-----------------------+          |              |                                     +
+|chr1      2849    4822 |          |              |                        +            |
+|chr1      32011   34331|   +------+              +	    matrix()       |            v
+|chr7      19331   20144|                             +--------------------+
++-----------------------+                             |     image()                    ...
+                                                      |
+                                                      v
+```
+![alt text](./matrix_test.jpg)
+<br/><br/>
 ## Sample Analysis
 In the following, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. Once started, the Pipeline ask to specify the input file and then requires no further interaction. This is the output of the Pipeline in the terminal:
 The ```echo``` output resembles the respective steps in the Pipeline:
@@ -294,5 +315,3 @@ SRX212358.bed  SRX3051209.bed  SRX4802308.bed  SRX4802337.bed  SRX968415.bed
 SRX212363.bed  SRX3346350.bed  SRX4802309.bed  SRX4802342.bed  SRX968419.bed
 SRX212364.bed  SRX3346354.bed  SRX4802315.bed  SRX4802344.bed  SRX968422.bed 
 ```
-
-
