@@ -171,6 +171,46 @@ echo "Done. A total of $count1 experiment files was created."
 }
 ```
 ## Analysis Functions
+
+## G4 Intersect
+
+```sh
+G4_intersecting(){
+#Requires bedtools an GNU parallel. G4 file must be named G4_intersect.sh
+echo "Intersecting Experiment files with G4s..."
+ls SRX* | parallel -j 3 "bash G4_intersect.sh $(echo {})"
+
+python << END
+import pandas as pd
+data = pd.read_csv("Output.txt", delim_whitespace = True, header = None)
+data[9] = data[5] / data[1]
+data = data[[0, 1, 5, 9]]
+data = data.sort_values(by = 9, ascending = False)
+data.to_csv("Output_sorted.txt", sep = "\t", index = None, header = None)
+
+END
+
+cut -f -1 Output_sorted.txt | awk -F "." '{print $1}' > ID_file.txt
+end_of_file=0
+while [[ $end_of_file == 0 ]]; do
+  		read -r line
+  		end_of_file=$?
+		wget https://www.ncbi.nlm.nih.gov/sra/$line/
+		sed -nr '/Sample:/ s/.*Sample:([^"]+).*/\1/p' index.html |  awk -F ">" '{print $2}' | awk -F "<" '{print $1}' >> temp_title
+		rm index.html
+	done < "ID_file.txt"
+	
+paste Output_sorted.txt temp_title > Output_final.txt
+
+rm ID_file.txt
+rm temp_title
+rm Output.txt
+rm Output._sorted.txt
+echo "Intersecting finished."
+}
+
+
+```
 ## Jaccard-Matrix
 When analyzing multiple ChIP-seq experiments, an overall plot of similiarities between single experiments can indicate factors targeting similiar genomic regions or sites. Rather than comparing intersects, one would like to compare the *grade of similiarity*, which can be calculated from the area of overlap divided by the area of union - this is known as the Jaccard Index: <br/><br/> 
 ![alt text](./jaccard.jpg)
