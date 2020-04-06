@@ -1,12 +1,30 @@
 # ChIP-Pipeline
-While working on my Master thesis, I was searching for ChIP-seq data to compare to my own data - I quickly discovered databases such as the GEO- and ChIP-Atlas-repository, which have close to half a million ChIP-seq experiments stored in total, quality-controlled and publicly accessible. As most journals now require submission of raw data upon publication, these repositorys will continue to grow in size and range. With todays computational capacity, it is possible to analzye datasets rapidly growing in size and complexity, enabling novel approaches such as untargeted clustering and principal component analysis (PCA). However, big data requires efficient automatization of data procession and analysis, which can be challenging to achieve. Here, I aim to implement a Pipeline, which automizes the ChIP-Seq analysis and provides a platform to easily implement analysis functions.
+While working on my Master thesis, I was searching for ChIP-seq data to compare to my own data - I quickly discovered databases such as the GEO- and ChIP-Atlas-repository, which have close to half a million ChIP-seq experiments stored in total, quality-controlled and publicly accessible. As most journals now require submission of raw data upon publication, these repositorys will continue to grow in both size and range. With todays computational capacity, it is possible to analzye datasets of increasing size and complexity, enabling novel approaches such as untargeted clustering and principal component analysis (PCA). However, big data requires efficient automatization of data procession and analysis, which can be challenging to achieve. Here, I aim to construct a Pipeline, which automizes the ChIP-Seq analysis and provides a platform to easily implement analysis functions.
 
-# ChIP-Pipeline
-## Workflow
+## Main Objective
 
 The main objective of the Pipeline is to automate the process of data-gathering and data-analysis: The user should be able to insert data into the Pipeline while specify the analysis methods, and then receive a detailed evaluation on the input files' metadata (Number of experiments, quality control, spread of reads/coverage..) and an analysis based on the methods specified during the setup. For now, analysis functions of the Pipeline will focus on identifying factors possibly interacting with G4-quadruplexes and clustering these factors by similiar region targeting.
 
-The pipeline requires Input files in BED- or BED6-format. For now, the Pipeline accepts output from ChIP-Atlas and formates files to BED-format. Input as .tsv looks like this (showing one line):
+## Prerequisites & Install
+
+**Requires:**
+- R > 4.5
+- Python 3
+- GNU parallel
+- bash or similiar
+
+**Install:**
+Clone the repository to your local workspace
+```sh
+mkdir PIPELINE
+cd PIPELINE
+git clone https://github.com/Okapi-san/ChIP-Pipeline.git
+chmod u+x ChIP_Pipeline_final.sh G4_intersect.sh Jaccard_matrix.R  formatting_pipeline_new.py jaccard.sh make_matrix.py
+```
+Run the Pipeline with ```./ChIP_Pipeline_final.sh```.
+
+## Input Data
+The pipeline requires Input files in BED- or BED6-format. For now, the Pipeline accepts input from ChIP-Atlas and formates files to BED-format. Input as .tsv looks like this (showing one line):
 ```
 track name="EPAS1 (@ All cell types) 50" url="http://chip-atlas.org/view?id=$$" gffTags="on"
 chr1	9869	10464	ID=SRX968419;Name=EPAS1%20(@%20786-O);Title=GSM1642766:%20ChIP-Seq%20of%20HIF-2a%20in%20786-O%20with%20HIF-1a%20re-expression%3B%20Homo%20sapiens%3B%20ChIP-Seq;Cell%20group=Kidney;<br>source_name=Renal%20Cancer%20Cell%20Line;cell%20line=786-O;transfection=HIF-1a%20(pRRL-HIF-1a);chip%20antibody=HIF-2alpha%20Antibody%20(PM9);	700	.	9869	10464	204,255,0
