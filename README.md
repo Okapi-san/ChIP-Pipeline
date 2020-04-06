@@ -170,6 +170,10 @@ while IFS= read -r line
 echo "Done. A total of $count1 experiment files was created."
 }
 ```
+## Challenges
+- **Big data:** 
+- **Filtering for unbiased Experiments:** The most challenging problem lies in the data itself: How can the pipeline identify and remove biased experiments (stress conditions, ChIP-seqs of KO mutants ...)
+- **Experiment Bias:** 
 ## Analysis Functions
 
 ## G4 Intersect
