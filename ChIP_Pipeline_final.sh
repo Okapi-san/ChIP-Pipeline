@@ -132,7 +132,6 @@ end_of_file=0
 while [[ $end_of_file == 0 ]]; do
   		read -r line
   		end_of_file=$?
-		echo https://www.ncbi.nlm.nih.gov/sra/$line/
 		wget https://www.ncbi.nlm.nih.gov/sra/$line/
 		sed -nr '/Sample:/ s/.*Sample:([^"]+).*/\1/p' index.html |  awk -F ">" '{print $2}' | awk -F "<" '{print $1}' >> temp_title
 		rm index.html
