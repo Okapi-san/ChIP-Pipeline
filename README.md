@@ -23,8 +23,10 @@ chmod u+x ChIP_Pipeline_final.sh G4_intersect.sh Jaccard_matrix.R  formatting_pi
 ```
 Run the Pipeline with ```./ChIP_Pipeline_final.sh```.
 
+# Workflow
+
 ## Input Data
-The pipeline requires Input files in BED- or BED6-format. For now, the Pipeline accepts input from ChIP-Atlas and formates files to BED-format. Input as .tsv looks like this (showing one line):
+The pipeline requires Input files in BED- or BED6-format or RAW-files from ChIP-Atlas. Input as .tsv from ChIP-Atlas looks like this (showing one line):
 ```
 track name="EPAS1 (@ All cell types) 50" url="http://chip-atlas.org/view?id=$$" gffTags="on"
 chr1	9869	10464	ID=SRX968419;Name=EPAS1%20(@%20786-O);Title=GSM1642766:%20ChIP-Seq%20of%20HIF-2a%20in%20786-O%20with%20HIF-1a%20re-expression%3B%20Homo%20sapiens%3B%20ChIP-Seq;Cell%20group=Kidney;<br>source_name=Renal%20Cancer%20Cell%20Line;cell%20line=786-O;transfection=HIF-1a%20(pRRL-HIF-1a);chip%20antibody=HIF-2alpha%20Antibody%20(PM9);	700	.	9869	10464	204,255,0
@@ -43,12 +45,8 @@ The files generally follow this scheme:
 | 9 | Title     |    GSM722415: GATA2 K562bmp r1 110325 3|
 |   10     |Meta data submitted by authors| source_name=GATA2 ChIP-seq K562 BMP cell line=K562 chip antibody=GATA2 antibody catalog number=Santa Cruz SC-9008 |
 
-This line contains all information on one read from the GSM-repository GSM722415, more precise from the experiment SRX097088, such as the chromosome, start- and stop-position, cell line and available metadata. For now, the pipeline extracts the chromosome, start, end and SRX-ID for each read. 
-
-
-## Functions
-
-ChIP-Atlas provides data in a concatenated format, with all reads from all experiments in one file. This usually results in huge textfiles ( >100 Gb), that cannot be handled by Python very well and/or exceed the available RAM of one workstation. Thus, the Pipeline splits the file in chunks of 10.000.000 lines into smaller files.
+This line contains all information on one read from the GSM-repository GSM722415, more precise from the experiment SRX097088, such as the chromosome, start- and stop-position, cell line and available metadata. For now, the pipeline extracts the chromosome, start, end and SRX-ID for each read.<br/>
+ChIP-Atlas provides data in a concatenated format, with all reads from all experiments in one file. This usually results in huge textfiles ( >100 Gb), that cannot be handled by Python very well and/or exceed the available RAM of one workstation. Thus, the Pipeline splits the file in chunks of 10.000.000 lines into smaller files. This also allows the splitfiles to be processed in parallel (not yet implemented). 
 ### split(), extracting_IDs() and formatting_pipeline_new.py
 ```sh
 extracting_IDs(){
@@ -75,7 +73,7 @@ sed -i '/^$/d' $FILE_NAME.IDs
 echo "Finished extracting IDs!"
 }
 ```
-These files are then fed into a Python script that extracts all SRX-IDs from the input-file and writes them to a new file. Lastly, it joins all IDs from the split-files and removes duplicates: 
+The splitted files are then fed into a Python script that extracts all SRX-IDs from the input-file and writes them to a new file. Lastly, it joins all IDs from the split-files and removes duplicates: 
 
 ```python
 import pandas as pd
@@ -141,7 +139,7 @@ fi
 }
 ```
 ## creating_experiment_files()
-Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file.
+Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file. This allows the user to work with a subset of experiments, which is more ressource effective than extracting the relevant reads from the mainfile. 
 
 ```python
                +----------->  SRX19382
@@ -155,7 +153,7 @@ Next, the Pipeline creates a separate file for each SRX-ID present in the mainfi
 ```
 _Fig. 1: Extracting SRX files from the mainfile._
 
-
+The ```creating_experiment_files()``` function reads the mainfile line by line with ```while IFS= read -r line```. While this is slower than reading the full file into the memory, it is the only option to process files exceeding the available memory of the workstation.
 
 
 ```sh
@@ -264,7 +262,7 @@ q()
 
 ## Plotting Coverage
 
-Where the Jaccard index calculates an overall plot of similiarities between single experiments to cluster factors targeting similiar genomic regions or sites, another approach would be to plot the overall coverage of each experiment over *all* genomic regions covered in all experiments: This allows to identify genomic regions that are covered in most experiments or, to identify experiments covering special regions which are not covered by most other experiments. This is done with ```bedtools multiIntersectBed```
+Where the Jaccard index calculates an overall plot of similiarities between single experiments to cluster factors targeting similiar genomic regions or sites, another approach would be to plot the overall coverage of each experiment over *all* genomic regions covered in all experiments: This allows to identify genomic regions that are covered in most experiments or, to identify experiments covering special regions which are not covered by most other experiments. This is done with ```bedtools multiIntersectBed```.
 ```python
  SRX1094                                                                       SRX1094     SRX1095  +->   ...
 +-----------------------+			  +-------------------------------------------------------------+
