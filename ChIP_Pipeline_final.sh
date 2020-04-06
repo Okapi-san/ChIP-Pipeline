@@ -126,6 +126,25 @@ data = data.sort_values(by = 9, ascending = False)
 data.to_csv("Output_sorted.txt", sep = "\t", index = None, header = None)
 
 END
+
+cut -f -1 Output_sorted.txt | awk -F "." '{print $1}' > ID_file.txt
+end_of_file=0
+while [[ $end_of_file == 0 ]]; do
+  		read -r line
+  		end_of_file=$?
+		echo https://www.ncbi.nlm.nih.gov/sra/$line/
+		wget https://www.ncbi.nlm.nih.gov/sra/$line/
+		sed -nr '/Sample:/ s/.*Sample:([^"]+).*/\1/p' index.html |  awk -F ">" '{print $2}' | awk -F "<" '{print $1}' >> temp_title
+		rm index.html
+	done < "ID_file.txt"
+	
+paste Output_sorted.txt temp_title > Output_final.txt
+
+rm ID_file.txt
+rm temp_title
+rm Output.txt
+rm Output._sorted.txt
+echo "Intersecting finished."
 }
 
 Jaccard(){
