@@ -1,9 +1,10 @@
 # ChIP-Pipeline
-
+While working on my Master thesis, I was searching for ChIP-seq data to compare to my own data - I quickly discovered databases such as the GEO- and ChIP-Atlas-repository, which have close to half a million ChIP-seq experiments stored in total, quality-controlled and publicly accessible. As most journals now require submission of raw data upon publication, these repositorys will continue to grow in size and range. With todays computational capacity, it is possible to analzye datasets rapidly growing in size and complexity, enabling novel approaches such as untargeted clustering and principal component analysis (PCA). However, big data requires efficient automatization of data procession and analysis, which can be challenging to achieve. Here, I aim to implement a Pipeline, which automizes the ChIP-Seq analysis and provides a platform to easily implement analysis functions.
 
 # ChIP-Pipeline
 ## Workflow
 
+The main objective of the Pipeline is to automate the process of data-gathering and data-analysis: The user should be able to insert data into the Pipeline while specify the analysis methods, and then receive a detailed evaluation on the input files' metadata (Number of experiments, quality control, spread of reads/coverage..) and an analysis based on the methods specified during the setup. For now, analysis functions of the Pipeline will focus on identifying factors possibly interacting with G4-quadruplexes and clustering these factors by similiar region targeting.
 
 The pipeline requires Input files in BED- or BED6-format. For now, the Pipeline accepts output from ChIP-Atlas and formates files to BED-format. Input as .tsv looks like this (showing one line):
 ```
