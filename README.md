@@ -171,7 +171,21 @@ echo "Done. A total of $count1 experiment files was created."
 }
 ```
 ## UPDATE: 
-While the method above is very fast for small files, it was very slow for big files, as the complete file needs to be searched for every single SRX-ID. I restructured this method for files >1.000.000 lines, so that ```parallel -a``` reads
+While the method above is very fast for smaller files, it proved too slow for big files, as the complete file needs to be searched for every single SRX-ID. I restructured this method for files >1.000.000 lines, so that ```parallel -a``` reads a single line, and writes it to the corresponding ID file. This way, the file is only processed once, with all cores in parallel. However, for smaller files the old method still should be faster due to the fixed cost degression of opening and closing a file each line.
+```sh
++----+                 +----+
+|SRX1| +---+---------> |SRX1|
+|    |     ^           +----+
+|SRX2| +-------+-----> |SRX2|
+|    |     |   ^       +----+
+|SRX1| +---+   |
+|    |         |       +----+
+|SRX4| +-------------> |SRX4|
+|    |         |       +----+
+|SRX2+---------+
++----+
+
+```
 ```sh
 # -*- coding: None -*-	
 parallel -j 60 -a temp ./make_file.sh {}
