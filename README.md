@@ -170,6 +170,19 @@ while IFS= read -r line
 echo "Done. A total of $count1 experiment files was created."
 }
 ```
+## UPDATE: 
+While the method above is very fast for small files, it was very slow for big files, as the complete file needs to be searched for every single SRX-ID. I restructured this method for files >1.000.000 lines, so that ```parallel -a``` reads
+```sh
+# -*- coding: None -*-	
+parallel -j 60 -a temp ./make_file.sh {}
+```
+This is ```make_file.sh```:
+```sh
+# -*- coding: None -*-			
+a=$(echo "$1" | cut -f 4- | cut -f -1)
+b=$(echo "$1" | cut -f -3)
+echo $b >> "$a.bed"
+```
 ## Challenges
 - **Big data:** 
 - **Filtering for unbiased Experiments:** The most challenging problem lies in the data itself: How can the pipeline identify and remove biased experiments (stress conditions, ChIP-seqs of KO mutants ...)
