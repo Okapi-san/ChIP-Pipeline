@@ -178,6 +178,30 @@ echo "Done. A total of $count1 experiment files was created."
 
 ## G4 Intersect
 
+My main reason constructing this Pipeline was to establish a high-throughput methot identifying factors with a tendency to colocate with G4 quadruplexes *in vivo*. Technically, this question can be adressed quite easily: An intersect function such as ```bedtools intersect``` can rapidly identfy intersecting reads in an experiment file and a file with G4 reads. This is implemented in the ```G4_intersecting()``` function of the Pipeline - using ```GNU parallel``` to enhance the performance. The result of each intersect is written to a summary file, expanded with additional metadata, in the following scheme:<br/>
+| SRX-ID        | Total reads       | Total G4 intersects  |Intersects / Reads | Tissue | Sample Title|
+| ------------- |:-------------:| :-----:|-----:| :------:|:------------|
+|SRX2346892.bed|90|190|2.1111111111111|Kidney|RCC4_Normoxia_HIF-2a (PM9)_Rep 1|
+
+However, this approach does not account for normalization and - more importantly - experimental bias and thus works best in a controlled environment of a small number of experiments. To illustrate this problem, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. After running, the Pipeline, the summary file with the intersect data looks like this (showing first ten lines):
+
+```sh
+(base) Oth.ALL.05.EPAS1.AllCell.bed>head -10 Output_sorted.txt 
+SRX2346892.bed	90	190	2.111111111111111	Cardiovascular	EPAS1_ChIPSeq
+SRX968419.bed	202	314	1.5544554455445545	Kidney		ChIP-Seq of HIF-2a in 786-O with HIF-1a re-expression
+SRX968415.bed	277	297	1.0722021660649819	Kidney		ChIP-Seq of HIF-2a in 786-O Vector Alone
+SRX4802363.bed	2208	1548	0.7010869565217391	liver		HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1
+SRX3346354.bed	1432	950	0.6634078212290503	liver		ChIP-Seq_786-O_HIF2A
+SRX4802309.bed	279	185	0.6630824372759857	Kidney		HKC8_0.5_16hr_HIF2a_rep2
+SRX4802349.bed	1663	928	0.5580276608538786	Kidney		RCC4_Normoxia_HIF-2a (PM9)_Rep 1
+SRX4802308.bed	204	112	0.5490196078431373	Kidney		HKC8_0.5_16hr_HIF2a_rep1
+SRX4802350.bed	1510	827	0.547682119205298	Kidney		RCC4_Normoxia_HIF-2a (PM9)_Rep 2
+SRX4802364.bed	1411	744	0.5272856130403969	Kidney		HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 2
+```
+<br/>
+As we can see, we have a huge spread of intersect, ranging from 2.1 - 0.5 (the experiments not shown in this list go as low as 0.05). There is a huge spread in the absolute number of peaks - obviously, SRX2346892 with 90 reads in total is not as robust as SRX4802363 with 2208 reads in total - which might require some sort of graded/adjusted intersect value. However, ```RCC4_Normoxia_HIF-2a (PM9)_Rep 1``` specifies  this would create a bias towards abundant factors. <br/>
+The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment.
+
 ```sh
 G4_intersecting(){
 #Requires bedtools an GNU parallel. G4 file must be named G4_intersect.sh
