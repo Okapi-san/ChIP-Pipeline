@@ -287,9 +287,9 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
 ```
 ![alt text](./EPAS1_Jaccard.jpg)
 
-This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```Python``` script constructs an **n x n** matrix from all Jaccard indices, then feeds the matrix into an ```R``` script using  ```scan()```. Finally, ```image()``` interpretes the Jaccard indices in the matrix as colours, ranging from **0.00 (red)** to **1.00 (white)** - hence, yellow to white pixel indicate a high similiarity, whereas red indicates small to no overlap. As the matrix has all experiments on both the x- and y-axis, at each position **(n/n)** there is a white spot, where the Jaccard index was calculated for identical experiments, leading to an overlap of **1.00**. This line thus is technically a symmetry axis.<br/>
+This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```Python``` script constructs an **n x n** matrix from all Jaccard indices, then feeds the matrix into an ```R``` script using  ```scan()```. Finally, ```image()``` interpretes the Jaccard indices in the matrix as colours, ranging from **0.00 (red)** to **1.00 (white)** - hence, yellow to white pixel indicate a high similiarity, whereas red indicates small to no overlap. As the matrix has all experiments on both the x- and y-axis, at each position **(n/n)** there is a white spot, where the Jaccard index was calculated for identical experiments, leading to an overlap of **1.00**. This line thus is technically a symmetry axis.<br/><br/>
 Limiting factor for the ```Jaccard()``` function is for now the ```scan()``` function: As it reads in the matrix as a whole into the memory, **n** <sup> **2**</sup> matrix elements quickly outscale available RAM, which kills the ```R``` script. Here, I might need to transform the Jaccard matrix into a sparse matrix, which would greatly reduce RAM load.<br/>
-The Jaccard plot above was calculated from the 35 experiment files of **EPAS1**, as described above. There is a cluster of yellow pixels in the bottem left, indicating that experiments 2-9 have a high degree of similarity - apart from that, there only a couple of smaller yellow fields, which suggests that most of the experiments are actually quite different. Looking at the experiments, number 2-9 are indeed SRX212355-SRX212365, which are expected to be similiar, as they originate from the same GSM repository. Alltogether, the Jaccard plot provides a measurement of the spread of similiarity, which is both important for clustering and quality control.
+The Jaccard plot above was calculated from the 35 experiment files of **EPAS1**, as described above. There is a cluster of yellow pixels in the bottem left, indicating that experiments 2-9 have a high degree of similarity - apart from that, there are only a couple of smaller yellow fields, which suggests that most of the experiments are actually quite different. Looking at the experiments, number 2-9 are indeed SRX212355-SRX212365, which are expected to be similiar, as they originate from the same GSM repository. Alltogether, the Jaccard plot provides a measurement of the spread of similiarity, which is both important for clustering and quality control.
 ```sh
 Jaccard(){
 
@@ -378,7 +378,7 @@ Where the Jaccard index calculates an overall plot of similiarities between sing
 ```
 ![alt text](./matrix_test.jpg)
 <br/>
-
+Again, the plot above was constructed from the **EPAS1** experiment set. The ```multiIntersect()``` function takes **all** reads from **all** experiment files, writes these to a file and sorts it ascending lexicographically. It then proceeds to interect **every** file with **every** read and writes this to a (x:experiments/y:reads) binary matrix: A **0** states that a certain read is not present in the certain experiment, wheras a **1** states that this certain read is present in the certain experiment. This function is relatively ressource intensive: All 35 **EPAS1** experiments together have roughly 60k reads, resulting in ~2.1M single calculations - this will be further optimised with the implementation of sparse matrices.
 ```sh
 multiIntersect(){
 
@@ -408,139 +408,7 @@ q()
 ```
 
 <br/><br/>
-## Sample Analysis
-In the following, we will use the ChIP-Pipeline to analyze 35 ChIP-Seqs of **EPAS1** (Endothelial PAS domain-containing protein 1), as a sample analysis. Once started, the Pipeline ask to specify the input file and then requires no further interaction. This is the output of the Pipeline in the terminal:
-The ```echo``` output resembles the respective steps in the Pipeline:
-- Asking for the input file
-- Checking the header
-- Deciding whether the file should be split
-- Extracting all SRX-IDs
-- Removing excess data from mainfile
-- Creating experiment files
-- Intersecting files with G4s
-- Calculating Jaccard indices
-- Constructing Jaccard matrix
-- Rendering matrix plot
-- MultiIntersecting & rendering coverage plot
 
-```sh
-(base) Oth.ALL.05.EPAS1.AllCell.bed>./ChIP_Pipeline_final.sh 
-Enter File name:                        
-Oth.ALL.05.EPAS1.AllCell
-Header looks good.
-File is too small to split.
-Extracting IDs...
-Finished processing a total of 1 ID files.
-Finished extracting IDs!
-Formatting file...
-File formatted.
-Creating experiment files...
-Done. A total of 35 experiment files was created.
-Intersecting Experiment files with G4s...
-Intersecting SRX114493.bed...
-Intersecting SRX212355.bed...
-Intersecting SRX212356.bed...
-Intersecting SRX212357.bed...
-Intersecting SRX212358.bed...
-Intersecting SRX212363.bed...
-Intersecting SRX212365.bed...
-Intersecting SRX212364.bed...
-Intersecting SRX212366.bed...
-Intersecting SRX2346892.bed...
-Intersecting SRX3051209.bed...
-Intersecting SRX2584128.bed...
-Intersecting SRX3346350.bed...
-Intersecting SRX359885.bed...
-Intersecting SRX3346354.bed...
-Intersecting SRX4096727.bed...
-Intersecting SRX4802301.bed...
-Intersecting SRX4802302.bed...
-Intersecting SRX4802309.bed...
-Intersecting SRX4802308.bed...
-Intersecting SRX4802315.bed...
-Intersecting SRX4802322.bed...
-Intersecting SRX4802316.bed...
-Intersecting SRX4802323.bed...
-Intersecting SRX4802335.bed...
-Intersecting SRX4802337.bed...
-Intersecting SRX4802342.bed...
-Intersecting SRX4802344.bed...
-Intersecting SRX4802349.bed...
-Intersecting SRX4802350.bed...
-Intersecting SRX4802363.bed...
-Intersecting SRX968415.bed...
-Intersecting SRX4802364.bed...
-Intersecting SRX968419.bed...
-Intersecting SRX968422.bed...
-Calculating jaccard indices for 35 files...
-Jaccard indices calculated.
--i used with no filenames on the command line, reading from STDIN.
--i used with no filenames on the command line, reading from STDIN.
-Constructing matrix...
-Matrix constructed.
-Rendering matrix plot...
-[1] "matrix_final.tsv"
-[1] "35"
-Read 1225 items
-null device 
-          1 
-Matrix plot rendered.
-Cleaning up...
-Cleaning finished.
-[1] "Oth.ALL.05.EPAS1.AllCell.matrix"
-[1] "70"
-Read 6047650 items
-null device 
-          1 
-Removing temporary files...
-rm: cannot remove 'temp': No such file or directory
-Termporary files removed. Exiting.
-```
-Running the Pipeline took around 20 seconds from start to finish. Before exiting, all intermediary files such as temp files, jaccard matrices, intersect files a. o. are removed, as these are usually not required for further analysis and would only occupate storage space. However, these files can be kept by commenting out the corresponding line in the ``` cleaning()``` function, such as``` #rm intersected.* ```. We then can see 35 distinct SRX-files, containing the reads of each experiment. The ```Output_sorted.txt``` file contains a summary of the G4-intersect for each file, and sorts them according to the relative overlap, descending from the highest overlap. The file is structured as:
-| SRX-ID        | Total reads       | Total G4 intersects  |Intersects / Reads |
-| ------------- |:-------------:| :-----:|-----:| 
-|SRX2346892.bed|90|190|2.1111111111111|
-
-
-Adding the SRX-IDs' metadata, ```Output_sorted.txt``` looks like:
-```sh
-(base) Oth.ALL.05.EPAS1.AllCell.bed>head -10 Output_sorted.txt 
-SRX2346892.bed	90	190	2.111111111111111	Cardiovascular	EPAS1_ChIPSeq
-SRX968419.bed	202	314	1.5544554455445545	Kidney		ChIP-Seq of HIF-2a in 786-O with HIF-1a re-expression
-SRX968415.bed	277	297	1.0722021660649819	Kidney		ChIP-Seq of HIF-2a in 786-O Vector Alone
-SRX4802363.bed	2208	1548	0.7010869565217391	liver		HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1
-SRX3346354.bed	1432	950	0.6634078212290503	liver		ChIP-Seq_786-O_HIF2A
-SRX4802309.bed	279	185	0.6630824372759857	Kidney		HKC8_0.5_16hr_HIF2a_rep2
-SRX4802349.bed	1663	928	0.5580276608538786	Kidney		RCC4_Normoxia_HIF-2a (PM9)_Rep 1
-SRX4802308.bed	204	112	0.5490196078431373	Kidney		HKC8_0.5_16hr_HIF2a_rep1
-SRX4802350.bed	1510	827	0.547682119205298	Kidney		RCC4_Normoxia_HIF-2a (PM9)_Rep 2
-SRX4802364.bed	1411	744	0.5272856130403969	Kidney		HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 2
-SRX4802322.bed	237	105	0.4430379746835443	Kidney
-SRX4802344.bed	5226	2266	0.43360122464600076	Kidney	
-SRX4802316.bed	283	121	0.4275618374558304	Kidney
-SRX968422.bed	3188	1355	0.42503136762860727	Kidney
-SRX4802337.bed	4803	2027	0.4220278992296481	Kidney
-SRX4802335.bed	3289	1288	0.3916083916083916	Kidney
-SRX4802342.bed	6696	2521	0.37649342891278376	Kidney
-SRX2584128.bed	1442	491	0.340499306518724	Epidermis
-SRX3051209.bed	3335	1090	0.3268365817091454	Kidney
-SRX3346350.bed	748	208	0.27807486631016043	Kidney
-SRX212365.bed	1120	235	0.20982142857142858	Macrophage
-SRX359885.bed	816	169	0.20710784313725492	Digestive tract
-SRX212355.bed	1208	240	0.1986754966887417	Macrophages
-SRX212363.bed	1154	228	0.1975736568457539	Macrophages
-SRX212364.bed	1114	220	0.19748653500897667	Macrophages
-SRX212357.bed	1273	222	0.1743912018853103	Macrophages
-SRX114493.bed	895	153	0.17094972067039105	Kidney
-SRX212358.bed	1383	232	0.16775126536514823	Macrophages
-SRX212356.bed	1263	206	0.16310372129849565	Macrophages
-SRX4096727.bed	3870	484	0.12506459948320414	Prostate
-SRX4802315.bed	611	64	0.10474631751227496 	Kidney
-SRX4802302.bed	666	60	0.09009009009009009	Kidney
-SRX4802323.bed	637	44	0.06907378335949764	Kidney	
-SRX4802301.bed	575	39	0.06782608695652174	Kidney
-SRX212366.bed	1012	51	0.05039525691699605	Macrophages
-```
 
 
 
