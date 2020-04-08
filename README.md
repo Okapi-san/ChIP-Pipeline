@@ -46,8 +46,10 @@ The files generally follow this scheme:
 |   10     |Meta data submitted by authors| source_name=GATA2 ChIP-seq K562 BMP cell line=K562 chip antibody=GATA2 antibody catalog number=Santa Cruz SC-9008 |
 
 This line contains all information on one read from the GSM-repository GSM722415, more precise from the experiment SRX097088, such as the chromosome, start- and stop-position, cell line and available metadata. For now, the pipeline extracts the chromosome, start, end and SRX-ID for each read.<br/>
-ChIP-Atlas provides data in a concatenated format, with all reads from all experiments in one file. This usually results in huge textfiles ( >100 Gb), that cannot be handled by Python very well and/or exceed the available RAM of one workstation. Thus, the Pipeline splits the file in chunks of 10.000.000 lines into smaller files. This also allows the splitfiles to be processed in parallel (not yet implemented). 
+
+<br/>
 ### split(), extracting_IDs() and formatting_pipeline_new.py
+ChIP-Atlas provides data in a concatenated format, with all reads from all experiments in one file. This usually results in huge textfiles ( >100 Gb), that cannot be handled by Python very well and/or exceed the available RAM of one workstation. Thus, the Pipeline splits the file in chunks of 10.000.000 lines into smaller files. This also allows the splitfiles to be processed in parallel (not yet implemented). 
 ```sh
 
 extracting_IDs(){
@@ -141,7 +143,7 @@ fi
 }
 ```
 ## creating_experiment_files()
-Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file. This allows the user to work with a subset of experiments, which is more ressource effective than extracting the relevant reads from the mainfile. 
+Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file. This allows the user to work with a subset of experiments, which is more ressource effective than extracting the relevant reads from the mainfile. Furthermore, most external analysis tools require input files to be experiment-specific. 
 
 ```r
                +----------->  SRX19382
@@ -153,7 +155,6 @@ Next, the Pipeline creates a separate file for each SRX-ID present in the mainfi
                +----------->  SRX19385
 
 ```
-_Fig. 1: Extracting SRX files from the mainfile._
 
 The ```creating_experiment_files()``` function reads the mainfile line by line with ```while IFS= read -r line```. While this is slower than reading the full file into the memory, it is the only option to process files exceeding the available memory of the workstation.
 
@@ -204,7 +205,7 @@ echo $b >> "$a.bed"
 
 ## G4 Intersect
 
-My main reason constructing this Pipeline was to establish a high-throughput methot identifying factors with a tendency to colocate with G4 quadruplexes *in vivo*. Technically, this question can be adressed quite easily: An intersect function such as ```bedtools intersect``` can rapidly identfy intersecting reads in an experiment file and a file with G4 reads. This is implemented in the ```G4_intersecting()``` function of the Pipeline - using ```GNU parallel``` to enhance the performance. The result of each intersect is written to a summary file, expanded with additional metadata, in the following scheme:<br/>
+My main reason constructing this Pipeline was to establish a high-throughput methot identifying factors with a tendency to colocate with G4 quadruplexes *in vivo*. Theoretically, this question can be adressed quite easily: An intersect function such as ```bedtools intersect``` can rapidly identfy intersecting reads in an experiment file and a file with G4 reads. This is implemented in the ```G4_intersecting()``` function of the Pipeline - using ```GNU parallel``` to enhance the performance. The result of each intersect is written to a summary file, expanded with additional metadata, in the following scheme:<br/>
 | SRX-ID        | Total reads       | Total G4 intersects  |Intersects / Reads | Tissue | Sample Title|
 | ------------- |:-------------:| :-----:|-----:| :------:|:------------|
 |SRX2346892.bed|90|190|2.1111111111111|Kidney|RCC4_Normoxia_HIF-2a (PM9)_Rep 1|
@@ -225,10 +226,10 @@ SRX4802350.bed	1510	827	0.547682119205298	Kidney		RCC4_Normoxia_HIF-2a (PM9)_Rep
 SRX4802364.bed	1411	744	0.5272856130403969	Kidney		HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 2
 ```
 <br/>
-As we can see, we have a huge spread of intersect, ranging from 2.1 - 0.5 (the experiments not shown in this list go as low as 0.05). There is a huge spread in the absolute number of peaks - obviously, SRX2346892 with 90 reads in total is not as robust as SRX4802363 with 2208 reads in total - which might require some sort of graded/adjusted intersect value. However, ```RCC4_Normoxia_HIF-2a (PM9)_Rep 1``` specifies  this would create a bias towards abundant factors. <br/>
+As we can see, we have a huge spread of intersect, ranging from 2.1 - 0.5 (the experiments not shown in this list go as low as 0.05). There is a huge spread in the absolute number of peaks - obviously, SRX2346892 with 90 reads in total is not as robust as SRX4802363 with 2208 reads in total - which might require some sort of graded/adjusted intersect value. However, this would create a bias towards more abundant factors. <br/>
 The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment. The ChIP-peaks on the second experiment might differ significantly from the first "wildtype" experiment, as the two experiment were conducted under different circumstances. The Pipeline thus needs a mechanism to distinguish between "control" and "treated" experiments, in order to group the experiment data accordingly. Luckily, most files adhere to the GEO naming convention, hence a first approach will be to sort the experiments based on the occurance of certain keywords in the titles (such as "%", "h", "KO" and so on). This is yet to be implemented.
-Still, for the analysis of factors with smaller experiment numbers, this method already yielded first results.
-
+Still, for the analysis of factors with smaller experiment numbers, this method already yielded first results.<br/><br/>
+This is the ```G4_intersecting()``` function, which is built on the ```bedtools intersect``` framework and parallelized with ```GNU parallel```. The sample titles are fetched with ```wget``` from ```https://www.ncbi.nlm.nih.gov/sra/$line/``` and joined with the summaryfile with ```paste```.<br/>
 ```sh
 G4_intersecting(){
 #Requires bedtools an GNU parallel. G4 file must be named G4_intersect.sh
@@ -378,7 +379,7 @@ Where the Jaccard index calculates an overall plot of similiarities between sing
 ```
 ![alt text](./matrix_test.jpg)
 <br/>
-Again, the plot above was constructed from the **EPAS1** experiment set. The ```multiIntersect()``` function takes **all** reads from **all** experiment files, writes these to a file and sorts it ascending lexicographically. It then proceeds to interect **every** file with **every** read and writes this to a (x:experiments/y:reads) binary matrix: A **0** states that a certain read is not present in the certain experiment, wheras a **1** states that this certain read is present in the certain experiment. This function is relatively ressource intensive: All 35 **EPAS1** experiments together have roughly 60k reads, resulting in ~2.1M single calculations - this will be further optimised with the implementation of sparse matrices.
+Again, the plot above was constructed from the **EPAS1** experiment set. The ```multiIntersect()``` function takes **all** reads from **all** experiment files, writes these to a file and sorts it ascending lexicographically. It then proceeds to interect **every** file with **every** read and writes this to a (x:experiments/y:reads) binary matrix: A **0** states that a certain read is not present in the certain experiment, wheras a **1** states that this certain read is present in the certain experiment. In the plot above, red equals zero, and white equals one. We can see thath there are certian regions present in most files (as they form a "line" over the plot), whereas most regions are unique to one or a small set of experiments.This function is relatively ressource intensive: All 35 **EPAS1** experiments together have roughly 60k reads, resulting in ~2.1M single calculations - this will be further optimised with the implementation of sparse matrices.<br/> Alltogether, this function provides a measurement of the spread of of reads over all files, which is important for region-based clustering.
 ```sh
 multiIntersect(){
 
@@ -389,7 +390,7 @@ Rscript --vanilla Jaccard_matrix.R $FILE_NAME.matrix $column_count
 }
 
 ```
-
+The ```R``` script constructing the plot from the matrix, identical to the script used in the ```Jaccard()``` function.
 ```r
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
