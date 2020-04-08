@@ -188,9 +188,10 @@ While the method above is very fast for smaller files, it proved too slow for bi
 +----+
 
 ```
+Using ```GNU parallel``` to read 65 lines from the mainfile and pass each line to a single task of ```make_file.sh```:
 ```sh
 # -*- coding: None -*-	
-parallel -j 60 -a temp ./make_file.sh {}
+parallel -j 65 -a temp ./make_file.sh {}
 ```
 This is ```make_file.sh```:
 ```sh
@@ -225,7 +226,8 @@ SRX4802364.bed	1411	744	0.5272856130403969	Kidney		HepG2_16hrs 0.5% O2_HIF-2a (P
 ```
 <br/>
 As we can see, we have a huge spread of intersect, ranging from 2.1 - 0.5 (the experiments not shown in this list go as low as 0.05). There is a huge spread in the absolute number of peaks - obviously, SRX2346892 with 90 reads in total is not as robust as SRX4802363 with 2208 reads in total - which might require some sort of graded/adjusted intersect value. However, ```RCC4_Normoxia_HIF-2a (PM9)_Rep 1``` specifies  this would create a bias towards abundant factors. <br/>
-The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment. The ChIP-peaks on the second experiment might differ significantly from the first "wildtype" experiment, as the two experiment were conducted under different circumstances. The Pipeline thus needs a mechanism to distinguish between "control" and "treated" experiments, in order to group the experiment data accordingly. Luckily, most files adhere to the GEO naming convention, hence a first approach will be to sort the experiments based on the occurance of certain keywords in the titles (such as "%", "h", "KO" and so on). This is yet to be implemented.  
+The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment. The ChIP-peaks on the second experiment might differ significantly from the first "wildtype" experiment, as the two experiment were conducted under different circumstances. The Pipeline thus needs a mechanism to distinguish between "control" and "treated" experiments, in order to group the experiment data accordingly. Luckily, most files adhere to the GEO naming convention, hence a first approach will be to sort the experiments based on the occurance of certain keywords in the titles (such as "%", "h", "KO" and so on). This is yet to be implemented.
+Still, for the analysis of factors with smaller experiment numbers, this method already yielded first results.
 
 ```sh
 G4_intersecting(){
@@ -356,7 +358,7 @@ q()
 ## Plotting Coverage
 
 Where the Jaccard index calculates an overall plot of similiarities between single experiments to cluster factors targeting similiar genomic regions or sites, another approach would be to plot the overall coverage of each experiment over *all* genomic regions covered in all experiments: This allows to identify genomic regions that are covered in most experiments or, to identify experiments covering special regions which are not covered by most other experiments. This is done with ```bedtools multiIntersectBed```.
-```python
+```r
  SRX1094                                                                       SRX1094     SRX1095  +->   ...
 +-----------------------+			  +-------------------------------------------------------------+
 |chr1      199     2041 |                         |chr1      199     2041         1           0
