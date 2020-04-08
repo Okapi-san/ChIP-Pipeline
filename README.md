@@ -143,7 +143,7 @@ fi
 ## creating_experiment_files()
 Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file. This allows the user to work with a subset of experiments, which is more ressource effective than extracting the relevant reads from the mainfile. 
 
-```java
+```r
                +----------->  SRX19382
 +--------------+
 |              +----------->  SRX19383
@@ -174,7 +174,7 @@ echo "Done. A total of $count1 experiment files was created."
 ```
 ## UPDATE: 
 While the method above is very fast for smaller files, it proved too slow for big files, as the complete file needs to be searched for every single SRX-ID. I restructured this method for files >1.000.000 lines, so that ```parallel -a``` reads a single line, and writes it to the corresponding ID file. This way, the file is only processed once, with all cores in parallel. However, for smaller files the old method still should be faster due to the fixed cost degression of opening and closing a file each line.
-```sh
+```r
 +----+                 +----+
 |SRX1| +---+---------> |SRX1|
 |    |     ^           +----+
@@ -272,7 +272,7 @@ When analyzing multiple ChIP-seq experiments, an overall plot of similiarities b
 <br/><br/>
 The Jaccard statistic is used in set theory to represent the ratio of the intersection of two sets to the union of the two sets. Similarly, Favorov et al. (2012) reported the use of the Jaccard statistic for genome intervals: specifically, it measures the ratio of the number of intersecting base pairs between two sets to the number of base pairs in the union of the two sets. Here, the ```bedtools jaccard``` tool is implemented to calculate this statistic, which modifies the statistic such that the length of the intersection is subtracted from the length of the union. **As a result, the final statistic ranges from 0.0 to 1.0, where 0.0 represents no overlap and 1.0 represent complete overlap.** To plot the the Jaccard indices of **n** ChIP-seq experiments, the Pipeline creates a two-dimensional matrix with an length **n** and width **n** - As this requires the calculation of **n** <sup> **2**</sup> Jaccard indices, the function rapidly outscales the processing power of the workstation and needs to be parallelized with ```GNU parallel``` for improved scalability.  
 
-```python
+```r
 
      d    c    b    a
    +-------------------+        
@@ -285,10 +285,11 @@ The Jaccard statistic is used in set theory to represent the ratio of the inters
    |1.0 |0.1 |0.1 |0.1 | d                      |
    +-------------------+                        v
 ```
-![alt text](./matrix_final.jpg)
+![alt text](./EPAS1_Jaccard.jpg)
 
 This is the ```Jaccard()``` function, which utilizes ```GNU parallel``` to parallelize calculation of Jaccard indices. A ```Python``` script constructs an **n x n** matrix from all Jaccard indices, then feeds the matrix into an ```R``` script using  ```scan()```. Finally, ```image()``` interpretes the Jaccard indices in the matrix as colours, ranging from **0.00 (red)** to **1.00 (white)** - hence, yellow to white pixel indicate a high similiarity, whereas red indicates small to no overlap. As the matrix has all experiments on both the x- and y-axis, at each position **(n/n)** there is a white spot, where the Jaccard index was calculated for identical experiments, leading to an overlap of **1.00**. This line thus is technically a symmetry axis.<br/>
-Limiting factor for the ```Jaccard()``` function is for now the ```scan()``` function: As it reads in the matrix as a whole into the memory, **n** <sup> **2**</sup> matrix elements quickly outscale available RAM, which kills the ```R``` script. Here, I might need to transform the Jaccard matrix into a sparse matrix, which would greatly reduce RAM load.  
+Limiting factor for the ```Jaccard()``` function is for now the ```scan()``` function: As it reads in the matrix as a whole into the memory, **n** <sup> **2**</sup> matrix elements quickly outscale available RAM, which kills the ```R``` script. Here, I might need to transform the Jaccard matrix into a sparse matrix, which would greatly reduce RAM load.<br/>
+The Jaccard plot above was calculated from the 35 experiment files of **EPAS1**, as described above. There is a cluster of yellow pixels in the bottem left, indicating that experiments 2-9 have a high degree of similarity - apart from that, there only a couple of smaller yellow fields, which suggests that most of the experiments are actually quite different. Looking at the experiments, number 2-9 are indeed SRX212355-SRX212365, which are expected to be similiar, as they originate from the same GSM repository. Alltogether, the Jaccard plot provides a measurement of the spread of similiarity, which is both important for clustering and quality control.
 ```sh
 Jaccard(){
 
@@ -376,6 +377,8 @@ Where the Jaccard index calculates an overall plot of similiarities between sing
                                                       v
 ```
 ![alt text](./matrix_test.jpg)
+<br/>
+
 ```sh
 multiIntersect(){
 
