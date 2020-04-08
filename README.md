@@ -49,6 +49,7 @@ This line contains all information on one read from the GSM-repository GSM722415
 ChIP-Atlas provides data in a concatenated format, with all reads from all experiments in one file. This usually results in huge textfiles ( >100 Gb), that cannot be handled by Python very well and/or exceed the available RAM of one workstation. Thus, the Pipeline splits the file in chunks of 10.000.000 lines into smaller files. This also allows the splitfiles to be processed in parallel (not yet implemented). 
 ### split(), extracting_IDs() and formatting_pipeline_new.py
 ```sh
+
 extracting_IDs(){
 count=1
 echo "Extracting IDs..."
@@ -72,6 +73,7 @@ sort "$FILE_NAME.IDs.final" | uniq > $FILE_NAME.IDs
 sed -i '/^$/d' $FILE_NAME.IDs
 echo "Finished extracting IDs!"
 }
+
 ```
 The splitted files are then fed into a Python script that extracts all SRX-IDs from the input-file and writes them to a new file. Lastly, it joins all IDs from the split-files and removes duplicates: 
 
@@ -141,7 +143,7 @@ fi
 ## creating_experiment_files()
 Next, the Pipeline creates a separate file for each SRX-ID present in the mainfile and proceeds to extract each read for a given SRX-ID into the respective file. This allows the user to work with a subset of experiments, which is more ressource effective than extracting the relevant reads from the mainfile. 
 
-```python
+```java
                +----------->  SRX19382
 +--------------+
 |              +----------->  SRX19383
