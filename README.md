@@ -3,7 +3,7 @@ While working on my Master thesis, I was searching for ChIP-seq data to compare 
 
 ## Main Objective
 
-The main objective of the Pipeline is to automate the process of data-gathering and data-analysis: The user should be able to insert data into the Pipeline while specify the analysis methods, and then receive a detailed evaluation on the input files' metadata (Number of experiments, quality control, spread of reads/coverage..) and an analysis based on the methods specified during the setup. For now, analysis functions of the Pipeline will focus on identifying factors possibly interacting with G4-quadruplexes and clustering these factors by similiar region targeting.
+The main objective of the Pipeline is to automate the process of data-gathering and data-analysis: The user should be able to insert data into the Pipeline while specifying the analysis methods, and then receive a detailed evaluation on the input files' metadata (Number of experiments, quality control, spread of reads/coverage...) and an analysis based on the methods specified during the setup. For now, analysis functions of the Pipeline will focus on identifying factors possibly interacting with G4-quadruplexes and clustering these factors by similiar region targeting.
 
 ## Prerequisites & Install
 
@@ -199,10 +199,6 @@ a=$(echo "$1" | cut -f 4- | cut -f -1)
 b=$(echo "$1" | cut -f -3)
 echo $b >> "$a.bed"
 ```
-## Challenges
-- **Big data:** 
-- **Filtering for unbiased Experiments:** The most challenging problem lies in the data itself: How can the pipeline identify and remove biased experiments (stress conditions, ChIP-seqs of KO mutants ...)
-- **Experiment Bias:** 
 ## Analysis Functions
 
 ## G4 Intersect
@@ -229,7 +225,7 @@ SRX4802364.bed	1411	744	0.5272856130403969	Kidney		HepG2_16hrs 0.5% O2_HIF-2a (P
 ```
 <br/>
 As we can see, we have a huge spread of intersect, ranging from 2.1 - 0.5 (the experiments not shown in this list go as low as 0.05). There is a huge spread in the absolute number of peaks - obviously, SRX2346892 with 90 reads in total is not as robust as SRX4802363 with 2208 reads in total - which might require some sort of graded/adjusted intersect value. However, ```RCC4_Normoxia_HIF-2a (PM9)_Rep 1``` specifies  this would create a bias towards abundant factors. <br/>
-The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment.
+The other problem is a general bias of experiments: The 6th corner consists of the sample titles corresponding to each experiment - following the GEO naming convention, ```ChIP-Seq_786-O_HIF2A``` indicates a plain ChIP-Seq of EPA1, whereas ```HepG2_16hrs 0.5% O2_HIF-2a (PM9)_Rep 1``` indicates some kind of treatment. The ChIP-peaks on the second experiment might differ significantly from the first "wildtype" experiment, as the two experiment were conducted under different circumstances. The Pipeline thus needs a mechanism to distinguish between "control" and "treated" experiments, in order to group the experiment data accordingly. Luckily, most files adhere to the GEO naming convention, hence a first approach will be to sort the experiments based on the occurance of certain keywords in the titles (such as "%", "h", "KO" and so on). This is yet to be implemented.  
 
 ```sh
 G4_intersecting(){
