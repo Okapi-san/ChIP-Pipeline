@@ -203,10 +203,10 @@ b=$(echo "$1" | cut -f -3)
 echo $b >> "$a.bed"
 ```
 
-## UPDATE
+## UPDATE:
 During testing it became obvious, that the fixed cost degression of passing a task with ```parallel -a``` is also not optimal fpr larger files. New one-liner, again with ```parallel```:
 ```
-parallel -j 3 "grep {1} temp | cut -f 1-5  >> {1}.bed" ::: `grep SRX IDs` 
+parallel -j $CORE_COUNT "grep {1} temp | cut -f 1-5  >> {1}.bed" ::: `grep SRX IDs` 
 ```
 Works a lot faster for test files but requires testing for bigfiles.
 
