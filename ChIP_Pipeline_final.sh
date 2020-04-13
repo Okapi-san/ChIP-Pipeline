@@ -8,9 +8,9 @@ extracting_IDs
 formatting_file
 creating_experiment_files
 G4_intersecting
-Jaccard
-multiIntersect
-cleaning
+#Jaccard
+#multiIntersect
+#cleaning
 
 
 }
@@ -18,6 +18,8 @@ cleaning
 set_variables(){
 echo "Enter File name:"
 read FILE_NAME
+echo "Enter number of CPU cores:"
+read CORE_COUNT
 str=$(tail -n +2 "$FILE_NAME")
 if [[ $str == track* ]]; 
 then 
@@ -100,22 +102,19 @@ fi
 
 creating_experiment_files(){
 echo "Creating experiment files..."
-INPUT_FILE="temp"
-count1=0
-while IFS= read -r line
-	do	
-		OUT_FILE="$line.bed"
-		grep "$line" $INPUT_FILE | cut -f 1-5  >> "$OUT_FILE"
-		count1=`expr $count1 + 1`
-	done < "$FILE_NAME.IDs"
-echo "Done. A total of $count1 experiment files was created."
+
+
+parallel -j $CORE_COUNT "grep {1} temp | cut -f 1-5  >> {1}.bed" ::: `grep SRX $FILE_NAME.IDs` 
+FILE_COUNT=$(ls SRX* | wc -l)
+echo "Created a total of $FILE_COUNT experiment files."
+
 
 }
 
 G4_intersecting(){
 #Requires bedtools an GNU parallel. G4 file must be named G4_intersect.sh
 echo "Intersecting Experiment files with G4s..."
-ls SRX* | parallel -j 3 "bash G4_intersect.sh $(echo {})"
+ls SRX* | parallel -j $CORE_COUNT "bash G4_intersect.sh $(echo {})"
 
 python << END
 import pandas as pd
@@ -159,7 +158,7 @@ done < "filenames"
 
 file_count=$(ls *.sorted | wc -l)
 echo "Calculating jaccard indices for $file_count files..."
-parallel "bedtools jaccard -a {1} -b {2} | awk 'NR>1' | cut -f 3 > {1}.{2}.jaccard" ::: `ls *.sorted` ::: `ls *.sorted`
+parallel -j $CORE_COUNT "bedtools jaccard -a {1} -b {2} | awk 'NR>1' | cut -f 3 > {1}.{2}.jaccard" ::: `ls *.sorted` ::: `ls *.sorted`
 echo "Jaccard indices calculated."
 find . | grep jaccard | xargs grep "" | sed -e s"/\.\///" | perl -pi -e "s/.bed./.bed\t/" | perl -pi -e "s/.jaccard:/\t/" > temp
 grep SRX temp > pairwise.jaccard.matrix
