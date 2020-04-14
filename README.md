@@ -274,9 +274,11 @@ rm Output.txt
 rm Output._sorted.txt
 echo "Intersecting finished."
 }
-
-
 ```
+#### Filtering Results:
+The ```Output_sorted.txt``` file contains a summary of all intersects. Most of the factors frequently intersecting with G4-quadruplexes are histones, which was to be expected - these factors need to be removed from the list.
+
+
 ## Jaccard-Matrix
 When analyzing multiple ChIP-seq experiments, an overall plot of similiarities between single experiments can indicate factors targeting similiar genomic regions or sites. Rather than comparing intersects, one would like to compare the *grade of similiarity*, which can be calculated from the area of overlap divided by the area of union - this is known as the Jaccard Index: <br/><br/> 
 ![alt text](./jaccard.jpg)
