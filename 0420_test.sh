@@ -3,12 +3,12 @@
 
 main(){
 set_variables
-#formatting_file
-#extracting_IDs
+formatting_file
+extracting_IDs
 #extracting_Targets
-#creating_experiment_files
+creating_experiment_files
 #creating_target_files
-#G4_intersecting
+G4_intersecting
 Get_GSM_IDs
 #Get_Sample_Names
 #Jaccard
@@ -95,17 +95,24 @@ rm Output._sorted.txt
 echo "Intersecting finished."
 }
 Get_GSM_IDs(){
+echo "Creating metadata file..."
+cat $FILE_NAME | cut -f 4-4 | cut -d';' -f 1-3 > temp2
+sort --parallel=$CORE_COUNT temp2 | uniq > temp3
+cat temp3 | sed 's/ID=//g' | sed 's/;/\t/g' | sed 's/Name=//g' | sed 's/Title=//g' | sed 's/%20/ /g' | sed 's/@//g' | sed 's/:/\t/g' | sed 's/(//g' | sed 's/)//g' > temp_metadata
+echo "metadata file created."
+
 echo "Pulling GSM IDs..."
 end_of_file=0
 while [[ $end_of_file == 0 ]]; do
   		read -r line
   		end_of_file=$?
-		grep $line $FILE_NAME | head -1 | sed 's/;/\t/g' | sed 's/:/\t/g' | sed 's/Title=//g' | cut -f 6-6 >> GSM_file  
+		#Needs more work, but works now.
+		#grep $line temp_metadata | head -1 | sed 's/;/\t/g' | sed 's/:/\t/g' | sed 's/Title=//g' | cut -f 6-6 >> GSM_file  
 		echo "$line"
 	done < "ID_file"
 
 paste Output_sorted.txt GSM_file > Output_sorted_GSM.txt
-rm GSM_file
+#rm GSM_file
 echo "GSM pulling finished."
 }
 
